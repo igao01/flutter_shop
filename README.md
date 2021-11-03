@@ -1,6 +1,6 @@
 # shop
 
-A new Flutter project.
+Este projeto é a base de uma loja virtual, foi desenvolvido com intuito de adquirir conhecimento sobre o gerenciamento de estado utilizando o Provider
 
 ## Getting Started
 
