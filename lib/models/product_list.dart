@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:shop/data/dummy_products.dart';
 import 'package:shop/models/product.dart';
@@ -15,6 +17,24 @@ class ProductList with ChangeNotifier {
     return _items.where((product) => product.isFavorite).toList();
   }
 
+  void saveProduct(Map<String, dynamic> data) {
+    bool hasId = data['id'] != null;
+
+    final product = Product(
+      id: hasId ? data['id'] : Random().nextDouble().toString(),
+      name: data['name'],
+      description: data['description'],
+      price: data['price'],
+      imageUrl: data['imageUrl'],
+    );
+
+    if (hasId) {
+      updateProduct(product);
+    } else {
+      addProduct(product);
+    }
+  }
+
   void addProduct(Product product) {
     _items.add(product);
 
@@ -22,6 +42,28 @@ class ProductList with ChangeNotifier {
     // os objetos que estao utilizando a lista de produtos
     // para que a atualização da tela ocorra
     notifyListeners();
+  }
+
+  void updateProduct(Product product) {
+    // verifica se ja existe o produto na lista
+    int index = _items.indexWhere((p) => p.id == product.id);
+
+    if (index >= 0) {
+      // atualiza o produto na lista
+      _items[index] = product;
+      notifyListeners();
+    }
+  }
+
+  void removeProduct(Product product) {
+    // verifica se ja existe o produto na lista
+    int index = _items.indexWhere((p) => p.id == product.id);
+
+    if (index >= 0) {
+      // remove o produto na lista
+      _items.removeWhere((p) => p.id == product.id);
+      notifyListeners();
+    }
   }
 }
 

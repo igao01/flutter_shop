@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop/components/confirm_dialog.dart';
 import 'package:shop/models/cart.dart';
 import 'package:shop/models/cart_item.dart';
 
@@ -28,6 +29,17 @@ class CartItemWidget extends StatelessWidget {
           color: Colors.white,
         ),
       ),
+      confirmDismiss: (_) {
+        return showDialog(
+          context: context,
+          builder: (ctx) => CustomConfirmDialog(
+            title: 'Tem Certeza?',
+            content: 'Você deseja remover o item do carrinho?',
+            positiveOnPressed: () => Navigator.of(context).pop(true),
+            negativeOnPressed: () => Navigator.of(context).pop(false),
+          ),
+        );
+      },
       onDismissed: (_) => Provider.of<Cart>(
         context,
         listen: false,

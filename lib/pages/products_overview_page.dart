@@ -31,7 +31,7 @@ class _ProductsOverviewPageState extends State<ProductsOverviewPage> {
             // child recebe a parte do widget que nao sofrera
             // alterações em seu estado
             child: IconButton(
-              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.cartRoute),
+              onPressed: () => Navigator.of(context).pushNamed(AppRoutes.cart),
               icon: const Icon(Icons.shopping_cart),
             ),
             builder: (ctx, cart, child) => Badge(
