@@ -21,6 +21,8 @@ class _ProductFormPageState extends State<ProductFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _formData = <String, dynamic>{};
 
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -74,30 +76,52 @@ class _ProductFormPageState extends State<ProductFormPage> {
     // verifica se termina com as extensoes png, jpg ou jpeg
     bool endsWithFile = url.toLowerCase().endsWith('.png') ||
         url.endsWith('.jpg') ||
-        url.endsWith('.jpeg');
+        url.endsWith('.jpeg') ||
+        url.endsWith('.webp');
 
     return isValidUrl && endsWithFile;
   }
 
   // envia o formulario
-  void _submitForm() {
+  Future<void> _submitForm() async {
     // verifica se o formulário é valido
     final isValid = _formKey.currentState!.validate();
     if (!isValid) {
       return;
     }
-
     // salva o formulario
     _formKey.currentState!.save();
 
-    // salva os dados chamando o provider
-    // e passando os dados do form como parâmetro
-    Provider.of<ProductList>(
-      context,
-      listen: false,
-    ).saveProduct(_formData);
+    setState(() => _isLoading = true);
 
-    Navigator.of(context).pop();
+    try {
+      // salva os dados chamando o provider
+      // e passando os dados do form como parâmetro
+      await Provider.of<ProductList>(
+        context,
+        listen: false,
+      ).saveProduct(_formData);
+
+      // volta para a lista de produtos somente
+      // apos receber resposta da requisicao
+      Navigator.of(context).pop();
+    } catch (error) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Ocorreu um erro !'),
+          content: const Text('Ocorreu um erro para salvar o produto.'),
+          actions: [
+            TextButton(
+              child: const Text('FECHAR'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -112,139 +136,145 @@ class _ProductFormPageState extends State<ProductFormPage> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                // carrega o campo com a informação do produto
-                initialValue: _formData['name'],
-                decoration: const InputDecoration(
-                  label: Text('Nome'),
-                ),
-                textInputAction: TextInputAction.next,
-                //muda o focu para o campo preço
-                onFieldSubmitted: (_) =>
-                    FocusScope.of(context).requestFocus(_priceFocus),
-                onSaved: (name) => _formData['name'] = (name ?? ''),
-                validator: (_name) {
-                  final name = _name ?? '';
-
-                  if (name.trim().isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-
-                  if (name.trim().length < 3) {
-                    return 'O nome precisa conter no mínimo 3 letras';
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: _formData['price'].toString(),
-                decoration: const InputDecoration(
-                  label: Text('Preço'),
-                ),
-                textInputAction: TextInputAction.next,
-                focusNode: _priceFocus,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                onSaved: (price) =>
-                    _formData['price'] = (double.parse(price ?? '0')),
-                validator: (_price) {
-                  final priceString = _price ?? '';
-                  final price = double.tryParse(priceString) ?? -1;
-
-                  if (priceString.trim().isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-
-                  if (price <= 0) {
-                    return 'Informe um preço válido';
-                  }
-                },
-              ),
-              TextFormField(
-                initialValue: _formData['description'],
-                decoration: const InputDecoration(
-                  label: Text('Descrição'),
-                ),
-                textInputAction: TextInputAction.next,
-                focusNode: _descriptionFocus,
-                // cria um campo de texto com 3 linhas
-                keyboardType: TextInputType.multiline,
-                maxLines: 3,
-                onSaved: (description) =>
-                    _formData['description'] = (description ?? ''),
-                validator: (_description) {
-                  final description = _description ?? '';
-
-                  if (description.trim().isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-
-                  if (description.trim().length < 10) {
-                    return 'A descrição precisa conter no mínimo 10 letras';
-                  }
-                },
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextFormField(
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : Padding(
+              padding: const EdgeInsets.all(16),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    TextFormField(
+                      // carrega o campo com a informação do produto
+                      initialValue: _formData['name'],
                       decoration: const InputDecoration(
-                        label: Text('URL da imagem'),
+                        label: Text('Nome'),
                       ),
-                      textInputAction: TextInputAction.done,
-                      keyboardType: TextInputType.url,
-                      focusNode: _imageUrlFocus,
-                      controller: _imageUrlController,
-                      onFieldSubmitted: (_) => _submitForm(),
-                      onSaved: (imageUrl) =>
-                          _formData['imageUrl'] = (imageUrl ?? ''),
-                      validator: (_imageUrl) {
-                        final imageUrl = _imageUrl ?? '';
+                      textInputAction: TextInputAction.next,
+                      //muda o focu para o campo preço
+                      onFieldSubmitted: (_) =>
+                          FocusScope.of(context).requestFocus(_priceFocus),
+                      onSaved: (name) => _formData['name'] = (name ?? ''),
+                      validator: (_name) {
+                        final name = _name ?? '';
 
-                        if (imageUrl.trim().isEmpty) {
+                        if (name.trim().isEmpty) {
                           return 'Campo obrigatório';
                         }
 
-                        if (!isValidImageUrl(imageUrl)) {
-                          return 'Informe uma url válida!';
+                        if (name.trim().length < 3) {
+                          return 'O nome precisa conter no mínimo 3 letras';
                         }
                       },
                     ),
-                  ),
-                  Container(
-                    height: 100,
-                    width: 100,
-                    margin: const EdgeInsets.only(top: 10, left: 10),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.grey,
-                        width: 1,
+                    TextFormField(
+                      initialValue: _formData['price'] != null
+                          ? _formData['price'].toString()
+                          : '',
+                      decoration: const InputDecoration(
+                        label: Text('Preço'),
                       ),
+                      textInputAction: TextInputAction.next,
+                      focusNode: _priceFocus,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onSaved: (price) =>
+                          _formData['price'] = (double.parse(price ?? '0')),
+                      validator: (_price) {
+                        final priceString = _price ?? '';
+                        final price = double.tryParse(priceString) ?? -1;
+
+                        if (priceString.trim().isEmpty) {
+                          return 'Campo obrigatório';
+                        }
+
+                        if (price <= 0) {
+                          return 'Informe um preço válido';
+                        }
+                      },
                     ),
-                    alignment: Alignment.center,
-                    child: _imageUrlController.text.isEmpty
-                        ? const Text('Informe a url')
-                        : FittedBox(
-                            child: Image.network(
-                              _imageUrlController.text,
-                              width: 100,
-                              height: 100,
+                    TextFormField(
+                      initialValue: _formData['description'],
+                      decoration: const InputDecoration(
+                        label: Text('Descrição'),
+                      ),
+                      textInputAction: TextInputAction.next,
+                      focusNode: _descriptionFocus,
+                      // cria um campo de texto com 3 linhas
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 3,
+                      onSaved: (description) =>
+                          _formData['description'] = (description ?? ''),
+                      validator: (_description) {
+                        final description = _description ?? '';
+
+                        if (description.trim().isEmpty) {
+                          return 'Campo obrigatório';
+                        }
+
+                        if (description.trim().length < 10) {
+                          return 'A descrição precisa conter no mínimo 10 letras';
+                        }
+                      },
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                              label: Text('URL da imagem'),
                             ),
-                            fit: BoxFit.cover,
+                            textInputAction: TextInputAction.done,
+                            keyboardType: TextInputType.url,
+                            focusNode: _imageUrlFocus,
+                            controller: _imageUrlController,
+                            onFieldSubmitted: (_) => _submitForm(),
+                            onSaved: (imageUrl) =>
+                                _formData['imageUrl'] = (imageUrl ?? ''),
+                            validator: (_imageUrl) {
+                              final imageUrl = _imageUrl ?? '';
+
+                              if (imageUrl.trim().isEmpty) {
+                                return 'Campo obrigatório';
+                              }
+
+                              if (!isValidImageUrl(imageUrl)) {
+                                return 'Informe uma url válida!';
+                              }
+                            },
                           ),
-                  ),
-                ],
+                        ),
+                        Container(
+                          height: 100,
+                          width: 100,
+                          margin: const EdgeInsets.only(top: 10, left: 10),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.grey,
+                              width: 1,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: _imageUrlController.text.isEmpty
+                              ? const Text('Informe a url')
+                              : FittedBox(
+                                  child: Image.network(
+                                    _imageUrlController.text,
+                                    width: 100,
+                                    height: 100,
+                                  ),
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }

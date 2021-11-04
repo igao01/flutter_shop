@@ -11,6 +11,8 @@ class ProductGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final msg = ScaffoldMessenger.of(context);
+
     Product product = Provider.of<Product>(
       context,
       // listen: false, o estado é alterado mas não é
@@ -44,7 +46,16 @@ class ProductGridItem extends StatelessWidget {
           leading: Consumer<Product>(
             builder: (ctx, product, _) => IconButton(
               color: Theme.of(context).colorScheme.secondary,
-              onPressed: () => product.toggleFavorite(),
+              onPressed: () async {
+                var toggleResponse = await product.toggleFavorite();
+
+                msg.showSnackBar(
+                  SnackBar(
+                    content: Text(toggleResponse.toString()),
+                    duration: const Duration(milliseconds: 1500),
+                  ),
+                );
+              },
               icon: Icon(
                 product.isFavorite ? Icons.favorite : Icons.favorite_border,
               ),
