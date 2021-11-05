@@ -4,4 +4,7 @@ class Constants {
 
   static const orderBaseUrl =
       'https://shop-coder-69ec2-default-rtdb.firebaseio.com/orders';
+
+  static const userFavoritesUrl =
+      'https://shop-coder-69ec2-default-rtdb.firebaseio.com/userFavorites';
 }

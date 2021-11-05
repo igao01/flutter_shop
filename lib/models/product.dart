@@ -26,7 +26,7 @@ class Product with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String> toggleFavorite() async {
+  Future<String> toggleFavorite(String token, String userId) async {
     // msg recebe o que será retornado pelo future
     // verifica se é favorito e
     // exibe removido ao remover a marcacao de favorito
@@ -36,13 +36,9 @@ class Product with ChangeNotifier {
     _toggleFavorite();
 
     try {
-      await http.patch(
-        Uri.parse('${Constants.productBaseUrl}/$id.json'),
-        body: jsonEncode(
-          {
-            "isFavorite": isFavorite,
-          },
-        ),
+      await http.put(
+        Uri.parse('${Constants.userFavoritesUrl}/$userId/$id.json?auth=$token'),
+        body: jsonEncode(isFavorite),
       );
     } catch (error) {
       // volta a marcacao inicial em caso de erro na requisicao
