@@ -37,26 +37,37 @@ class _OrderWidgetState extends State<OrderWidget> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
               // altura do container é baseada na quantidade de itens
-              height: widget.order.products.length * 25.0 + 10,
+              height: widget.order.products.length * 25.0 + 40,
               child: ListView(
                 children: widget.order.products.map((product) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  return Column(
                     children: [
-                      Text(
-                        product.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            child: Text(
+                              product.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                          Text(
+                            '${product.quantity}x R\$ ${product.price}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        '${product.quantity}x R\$ ${product.price}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                        ),
-                      ),
+                      widget.order.products.length > 1
+                          ? const Divider()
+                          : const SizedBox(),
                     ],
                   );
                 }).toList(),

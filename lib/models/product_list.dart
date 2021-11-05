@@ -24,7 +24,8 @@ class ProductList with ChangeNotifier {
   Future<void> loadProducts() async {
     _items.clear();
 
-    final response = await http.get(Uri.parse('${Constants.baseUrl}.json'));
+    final response =
+        await http.get(Uri.parse('${Constants.productBaseUrl}.json'));
 
     // sai do método caso o restorno da resposta seja nulo
     if (response.body == 'null') return;
@@ -70,7 +71,7 @@ class ProductList with ChangeNotifier {
     // realiza uma requisicao POST
     final response = await http.post(
       // define o end da requisicao
-      Uri.parse('${Constants.baseUrl}.json'),
+      Uri.parse('${Constants.productBaseUrl}.json'),
       // passa o objeto no corpo da requisicao
       body: jsonEncode(
         {
@@ -110,7 +111,7 @@ class ProductList with ChangeNotifier {
 
     if (index >= 0) {
       await http.patch(
-        Uri.parse('${Constants.baseUrl}/${product.id}.json'),
+        Uri.parse('${Constants.productBaseUrl}/${product.id}.json'),
         body: jsonEncode(
           {
             "name": product.name,
@@ -146,7 +147,7 @@ class ProductList with ChangeNotifier {
 
       // realiza a requisicao para exluir no back-end
       final response = await http.delete(
-        Uri.parse('${Constants.baseUrl}/${product.id}.json'),
+        Uri.parse('${Constants.productBaseUrl}/${product.id}.json'),
       );
 
       // verifica se houve algum erro na requisicao
