@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:shop/data/store.dart';
 import 'package:shop/exceptions/auth_exception.dart';
 
 class Auth with ChangeNotifier {
@@ -41,6 +42,35 @@ class Auth with ChangeNotifier {
     return _authenticate(email, password, 'signInWithPassword');
   }
 
+  // auto logar
+  Future<void> tryAutoLogin() async {
+    // verifica se o usuario ja esta logado
+    // se estiver sai do metodo
+    if (isAuth) return;
+
+    // verifica se tem um usuario salvo no dispositivo
+    // se nao tem usuario sai do metodo
+    // pois nao tem dados para tenta logar automatico
+    final userData = await Store.getMap('userData');
+    if (userData.isEmpty) return;
+
+    // verifica se o tempo de expiracao do token ainda é valido
+    // se for valido nao precisa realizar tentativa de login
+    final expiryDate = DateTime.parse(userData['expiryDate']);
+    if (expiryDate.isBefore(DateTime.now())) return;
+
+    // realiza o login atribuindo os dados
+    // vindos do armazenamento do dispositivo
+    // as variaveis em Auth e notificando os listeners
+    _token = userData['token'];
+    _email = userData['email'];
+    _userId = userData['userId'];
+    _expiryDate = expiryDate;
+
+    _autoLogout();
+    notifyListeners();
+  }
+
   // realiza a requisica alterando somente o urlFragment
   Future<void> _authenticate(
       String email, String password, String urlFragment) async {
@@ -75,6 +105,15 @@ class Auth with ChangeNotifier {
           seconds: int.parse(body['expiresIn']),
         ),
       );
+
+      // salva os dados do usuário no dispositivo
+      Store.saveMap('userData', {
+        'token': _token,
+        'email': _email,
+        'userId': _userId,
+        'expiryDate': _expiryDate!.toIso8601String(),
+      });
+
       _autoLogout();
       notifyListeners();
     }
@@ -86,7 +125,13 @@ class Auth with ChangeNotifier {
     _userId = null;
     _expiryDate = null;
     _clearAutoLogoutTimer();
-    notifyListeners();
+
+    // remove os dados do armazenamento do dispositivo
+    // e notifica os listeners somente apos a conclusao
+    // dessa tarefa
+    Store.remove('userData').then(
+      (value) => notifyListeners(),
+    );
   }
 
   void _clearAutoLogoutTimer() {
