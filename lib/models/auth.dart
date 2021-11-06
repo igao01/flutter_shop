@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -10,6 +11,7 @@ class Auth with ChangeNotifier {
   String? _email;
   String? _userId;
   DateTime? _expiryDate;
+  Timer? _logoutTimer;
 
   // verifica se usuario esta logado
   bool get isAuth {
@@ -73,7 +75,35 @@ class Auth with ChangeNotifier {
           seconds: int.parse(body['expiresIn']),
         ),
       );
+      _autoLogout();
       notifyListeners();
     }
+  }
+
+  void logout() {
+    _token = null;
+    _email = null;
+    _userId = null;
+    _expiryDate = null;
+    _clearAutoLogoutTimer();
+    notifyListeners();
+  }
+
+  void _clearAutoLogoutTimer() {
+    _logoutTimer?.cancel();
+    _logoutTimer = null;
+  }
+
+  void _autoLogout() {
+    _clearAutoLogoutTimer();
+
+    // pega o tempo restante de validade do token
+    Duration timeToLogout =
+        _expiryDate?.difference(DateTime.now()) ?? const Duration(seconds: 0);
+
+    _logoutTimer = Timer(
+      timeToLogout,
+      logout,
+    );
   }
 }
