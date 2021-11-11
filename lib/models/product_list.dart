@@ -11,7 +11,7 @@ class ProductList with ChangeNotifier {
   final String _token;
   final String _userId;
 
-  List<Product> _items = [];
+  List<Product> _items;
 
   ProductList([
     this._token = '',

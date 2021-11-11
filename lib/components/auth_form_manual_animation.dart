@@ -4,19 +4,29 @@ import 'package:provider/provider.dart';
 import 'package:shop/exceptions/auth_exception.dart';
 import 'package:shop/models/auth.dart';
 
+/*
+
+
+  ESTE ARQUIVO NAO ESTA SENDO UTILIZA
+  ESTA AQUI SOMENTE PARA EXEMPLIFICAR UMA
+  ANIMACAO UTILIZANDO O AnimationController
+
+
+*/
 enum AuthMode {
   login,
   signUp,
 }
 
-class AuthForm extends StatefulWidget {
-  const AuthForm({Key? key}) : super(key: key);
+class AuthFormManualAnimation extends StatefulWidget {
+  const AuthFormManualAnimation({Key? key}) : super(key: key);
 
   @override
-  _AuthFormState createState() => _AuthFormState();
+  _AuthFormManualAnimationState createState() =>
+      _AuthFormManualAnimationState();
 }
 
-class _AuthFormState extends State<AuthForm>
+class _AuthFormManualAnimationState extends State<AuthFormManualAnimation>
     with SingleTickerProviderStateMixin {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -29,10 +39,10 @@ class _AuthFormState extends State<AuthForm>
   };
 
   AnimationController? _controller;
-  Animation<double>? _opacityAnimation;
-  Animation<Offset>? _slideAnimation;
+  Animation<Size>? _heightAnimation;
 
   bool _isLogin() => _authMode == AuthMode.login;
+  bool _isSignup() => _authMode == AuthMode.signUp;
 
   @override
   void initState() {
@@ -49,28 +59,16 @@ class _AuthFormState extends State<AuthForm>
       duration: const Duration(milliseconds: 300),
     );
 
-    // FADE ANIMATION
-    // Tween define o range entre dois valores
-    _opacityAnimation = Tween(
-      begin: 0.0,
-      end: 1.0,
+    // Tween define a altura de inicio e termino da animacao
+    _heightAnimation = Tween(
+      begin: const Size(double.infinity, 310),
+      end: const Size(double.infinity, 395),
     ).animate(
       // define como a animacao sera realizada
       // se inicia lenta e termina rápid etc...
       CurvedAnimation(
         parent: _controller!,
-        curve: Curves.easeIn,
-      ),
-    );
-
-    // SLIDE ANIMATION
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, -1.5),
-      end: const Offset(0.0, 0.0),
-    ).animate(
-      CurvedAnimation(
-        parent: _controller!,
-        curve: Curves.easeIn,
+        curve: Curves.linear,
       ),
     );
   }
@@ -158,14 +156,14 @@ class _AuthFormState extends State<AuthForm>
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      // realiza uma animacao passando Curve e a
-      // Duration como parametro
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.linear,
-        width: deviceSize.width * 0.75,
-        height: _isLogin() ? 310 : 395,
-        padding: const EdgeInsets.all(16),
+      child: AnimatedBuilder(
+        animation: _heightAnimation!,
+        builder: (ctx, childForm) => Container(
+          width: deviceSize.width * 0.75,
+          height: _heightAnimation!.value.height,
+          padding: const EdgeInsets.all(16),
+          child: childForm,
+        ),
         child: Form(
           key: _formKey,
           child: Column(
@@ -199,38 +197,21 @@ class _AuthFormState extends State<AuthForm>
                   }
                 },
               ),
-              AnimatedContainer(
-                // controla a altura do campo para que ele cresça
-                // de acordo com o container
-                constraints: BoxConstraints(
-                  minHeight: _isLogin() ? 0 : 40,
-                  maxHeight: _isLogin() ? 0 : 120,
+              if (_isSignup())
+                TextFormField(
+                  decoration:
+                      const InputDecoration(labelText: 'Confirmar Senha'),
+                  keyboardType: TextInputType.emailAddress,
+                  obscureText: true,
+                  validator: _authMode == AuthMode.login
+                      ? null
+                      : (_password) {
+                          final password = _password ?? '';
+                          if (password != _passwordController.text) {
+                            return "As senhas não são iguais";
+                          }
+                        },
                 ),
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.linear,
-                // realiza uma animação fade recebendo um
-                // AnimationController como paremetro
-                child: FadeTransition(
-                  opacity: _opacityAnimation!,
-                  child: SlideTransition(
-                    position: _slideAnimation!,
-                    child: TextFormField(
-                      decoration:
-                          const InputDecoration(labelText: 'Confirmar Senha'),
-                      keyboardType: TextInputType.emailAddress,
-                      obscureText: true,
-                      validator: _authMode == AuthMode.login
-                          ? null
-                          : (_password) {
-                              final password = _password ?? '';
-                              if (password != _passwordController.text) {
-                                return "As senhas não são iguais";
-                              }
-                            },
-                    ),
-                  ),
-                ),
-              ),
               const SizedBox(height: 20),
               _isLoading
                   ? const SizedBox(

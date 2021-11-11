@@ -28,9 +28,22 @@ class ProductGridItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: GridTile(
         child: GestureDetector(
-          child: Image.network(
-            product.imageUrl,
-            fit: BoxFit.cover,
+          // Hero faz uma animacao de ampliar a imagem
+          // enquanto muda para a tela de detalhes
+          // é necessário ter paremetro tag no widget de origem
+          // e no widget de destino
+          // tag deve ser um atributo unico
+          child: Hero(
+            tag: product.id,
+            // utiliza uma imagem de fundo enquanto
+            // aguarda o carregamento da imagem vinda
+            // do back-end
+            child: FadeInImage(
+              placeholder:
+                  const AssetImage('assets/images/product-placeholder.png'),
+              image: NetworkImage(product.imageUrl),
+              fit: BoxFit.cover,
+            ),
           ),
           onTap: () {
             Navigator.of(context).pushNamed(
