@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shop/models/auth.dart';
 import 'package:shop/models/product_list.dart';
 import 'package:shop/utils/app_pages.dart';
+import 'package:shop/utils/custom_route.dart';
 
 import 'models/cart.dart';
 import 'models/order_list.dart';
@@ -64,6 +65,15 @@ class MyApp extends StatelessWidget {
             accentColor: Colors.deepOrange,
           ),
           fontFamily: 'Lato',
+
+          // define o tipo de transicao de tela utilizada no app
+          pageTransitionsTheme: PageTransitionsTheme(
+            // define o tipo de transicao de acordo com a plataforma
+            builders: {
+              TargetPlatform.iOS: CustomPageTransictionBuilder(),
+              TargetPlatform.android: CustomPageTransictionBuilder(),
+            },
+          ),
         ),
         routes: AppPages.pages,
       ),

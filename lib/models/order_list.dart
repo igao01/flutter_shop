@@ -30,9 +30,10 @@ class OrderList with ChangeNotifier {
 
     final response = await http.get(
         Uri.parse('${Constants.userOrderBaseUrl}/$_userId.json?auth=$_token'));
-
     // sai do método caso o restorno da resposta seja nulo
-    if (response.body == 'null') return;
+    if (response.body == 'null' || jsonDecode(response.body)['error'] != null) {
+      return;
+    }
 
     Map<String, dynamic> data = jsonDecode(response.body);
     data.forEach((orderId, orderData) {
